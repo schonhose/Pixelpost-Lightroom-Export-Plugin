@@ -207,6 +207,7 @@ function PixelpostUploadTask.processRenderedPhotos( functionContext, exportConte
 			local categories = exportParams.addCategories
 			local autoDate = exportParams.autoDate
 			local ftpPassword = exportParams.ftpPassword
+			local postInterval = exportParams.postInterval
 			local allowComments = exportParams.allowComments
 			
 			-- See if we previously uploaded this photo.
@@ -238,6 +239,7 @@ function PixelpostUploadTask.processRenderedPhotos( functionContext, exportConte
 										categories = categories,
 										autodate = autoDate,
 										ftppassword = ftpPassword,
+										postinterval = postInterval,
 										allow_comments = allowComments,
 									}
 				

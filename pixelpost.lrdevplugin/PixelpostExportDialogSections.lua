@@ -109,12 +109,37 @@ function PixelpostExportDialogSections.sectionsForBottomOfDialog( f, propertyTab
 					items = {
 						-- TO DO: Should really be populated from live data. ;-)
 						{ title = "Post Now", value = '2' },
-						{ title = "Post Three Days After Last Post", value = '1' },
+						{ title = "Post <Post interval> Days After Last Post", value = '1' },
 						{ title = "Use EXIF Date", value = '3' },
 					},
 				},
 			},
 
+			f:row {
+				f:static_text {
+					title = LOC "$$$/Pixelpost/ExportDialog/postInterval=Post-interval (days):",
+					alignment = 'right',
+					width = share 'labelWidth',
+				},
+
+				f:password_field {
+					value = bind 'postInterval',
+					fill_horizontal = 1,
+				},
+			},
+
+			f:row {
+				f:spacer {
+					width = share 'labelWidth',
+				},
+
+				f:static_text {
+					title = LOC "$$$/Pixelpost/ExportDialog/POSTINTERVALNote=This setting will only work when the option \"Post <interval> Days After Last Post\" is selected.",
+					fill_horizontal = 1,
+					height_in_lines = 2,
+					width_in_chars = 32,
+				},
+			},
 
 			f:row {
 				f:static_text {
@@ -191,7 +216,7 @@ function PixelpostExportDialogSections.sectionsForBottomOfDialog( f, propertyTab
 		},		
 			},	
 		
-			-- Categories:
+			-- FTP Password:
 			
 			f:row {
 				f:static_text {
