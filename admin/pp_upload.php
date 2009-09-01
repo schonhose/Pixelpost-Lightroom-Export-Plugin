@@ -126,7 +126,6 @@ $_FILES['userfile'] = $_FILES['photo'];
 /**
  * Provide addon support
  */
-$_GET['view'] = '';
 $_GET['x'] = 'save';
 
 // Hack to get post slug to auto-generate titles
@@ -385,12 +384,13 @@ if ($_GET['x'] == "save")
 
 
 		eval_addon_admin_workspace_menu('upload_finished');
-
+		
 		/**
 		 * Image has been uploaded with success
 		 * Our job is done...
 		 * Let the program know
 		 **/
+	    ob_end_clean();
 		echo "OK";
 	} // end status ok
 	else
