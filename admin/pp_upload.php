@@ -52,7 +52,7 @@ define("POSTINTERVAL", 1);
 define("BLANKTITLE", false);
 
 /**
- * If you use Lightroom to geocode your images (e.g. use the Jeffrey’s "GPS-Support" Geoencoding 
+ * If you use Lightroom to geocode your images (e.g. use the Jeffreyï¿½s "GPS-Support" Geoencoding 
  * Plugin for Lightroom, found at http://regex.info/blog/lightroom-goodies/gps) and if you use the
  * Googlemap addon, you can update the location at your photoblog while performing the export. 
  * To enable this feature, change the text from false to true.
@@ -105,7 +105,7 @@ ob_start();
 /**
  * Translate the Lightroom $_POST variables to Pixelpost format
  **/
-if (!ENABLE_TAGS)
+if (!BLANKTITLE)
 {
 	$_POST['headline'] = $_POST['title'];
 }
