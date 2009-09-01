@@ -34,15 +34,9 @@ define("ENABLE_TAGS", true);
  * While Lightroom is perfectly happy containing tags with spaces, this is used as a
  * seperator in Pixelpost causing the tag "My family" to appear as two tags: "My" and "family"
  * Here you can set the space replacement string in the tags. Default is an "_" 
- * (e.g. "My_family")
+ * (e.g. "My_family") If you would like to disable this feature, simply enter a space " " as the value.
  */
 define("TAGSPACEREPLACEMENT", '_');
-
-/**
- * Pixelpost treats spaces in tags as separate tags, Lightroom however only sees commas as a tag separator.
- * If this is enabled, all tags from Lightroom with spaces in them will have underscores replacing the spaces.
- */
-define("FIX_SPACES", true);
 
 /**
  * Pixelpost allows you to upload a post several days after the last post (posting in the future). With this
@@ -58,14 +52,6 @@ define("POSTINTERVAL", 1);
  **/
 define("USEGOOGLEMAPADDON", true);
 
-/**
- * The FTPPermissions addon adds additional security for blogs that need the images and 
- * thumbnails folder to be CHMOD 0777 while uploading. In order to open up the folders so
- * the plugin can write the image you need to provide the FTP password in the export dialog and 
- * enable the feature by changing the text from false to true.
- **/
-define("USEFTPPERMISSIONSADDON", true);
-
 ////////// DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING! //////////
 
 
@@ -73,13 +59,20 @@ define("USEFTPPERMISSIONSADDON", true);
 // SVN file version:
 // $Id: index.php 517 2008-01-16 20:01:47Z d3designs $
 
-error_reporting(0);
-$PHP_SELF = "index.php";
-define('ADDON_DIR', '../addons/');
 
-// Cheap hack to allow loading of vars on addons page
-if (!isset($_GET['view']))
+/**
+ * If we are on the Addons page in the admin panel, we don't need to execute the rest of this code, 
+ * we only need the config variables, so we will stop here.
+ */
+if (isset($_GET['view']))
 {
+	return true;
+}
+
+	error_reporting(0);
+	$PHP_SELF = "index.php";
+	define('ADDON_DIR', '../addons/');
+	
 	/**
 	 * Check if the postkey matches, and the mode is set to either validate or upload
 	 **/
@@ -107,7 +100,7 @@ if (!isset($_GET['view']))
 	 **/
 
 	$_POST['headline'] = $_POST['title'];
-	$_POST['body'] = $_POST['description'];
+	$_POST['body']     = $_POST['description'];
 
 	/**
 	 * If tags are disabled, we can remove them from the post.
@@ -116,26 +109,17 @@ if (!isset($_GET['view']))
 	{
 		$_POST['tags'] = '';
 	}
+	
+	/**
+	 * Remove any leading/trailing spaces or commas from the tags
+	 */
 	$_POST['tags'] = trim($_POST['tags'], ', ');
 
 	/**
 	 * Replace any spaces in tags with underscores, to maintain the full LR names:
 	 */
-	if (FIX_SPACES)
-	{
-		//----------------------------------------------------------------------------------------------------------------------------------------
-		// TAGSPACEREPLACEMENT >> ask jay!
-		$_POST['tags'] = str_replace(array(' ', '_,', ',_'), array('_', ',', ','), $_POST['tags']);
-	}
-
-	/**
-	 * If the FTP Permissions addon is used provide the password to open the folders
-	 */
-	if (USEFTPPERMISSIONSADDON)
-	{
-		$_POST['ftp_password_permissions'] = $_POST['ftppassword'];
-	}
-
+	$_POST['tags'] = str_replace(array(' ', TAGSPACEREPLACEMENT.',', ','.TAGSPACEREPLACEMENT), array(TAGSPACEREPLACEMENT, ',', ','), $_POST['tags']);
+	
 	$_FILES['userfile'] = $_FILES['photo'];
 
 
@@ -330,6 +314,8 @@ if (!isset($_GET['view']))
 			$theid = mysql_insert_id(); //Gets the id of the last added image to use in the next "insert"
 			/**
 			 * Support for the GooglemapAddon (really should incorperate different versions....)
+			 * 
+			 * @todo Google Map Addon, should run via the included addon workspaces, and shouldn't require extensive hacking of pp_upload.php
 			 **/
 			if (USEGOOGLEMAPADDON)
 			{
@@ -406,7 +392,7 @@ if (!isset($_GET['view']))
 			eval_addon_admin_workspace_menu('upload_finished');
 
 			/**
-			 * Image has been uploaded with succes
+			 * Image has been uploaded with success
 			 * Our job is done...
 			 * Let the program know
 			 **/
@@ -431,6 +417,5 @@ if (!isset($_GET['view']))
 	unset($_SESSION["pixelpost_admin"]);
 	setcookie("pp_user", "", time() - 36000);
 	setcookie("pp_password", "", time() - 36000);
-} // End if Get View
 
 ?>

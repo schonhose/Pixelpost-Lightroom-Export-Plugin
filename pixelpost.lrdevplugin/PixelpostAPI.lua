@@ -358,7 +358,7 @@ function PixelpostAPI.uploadPhoto( params )
 	-- local params.photo_id = uploadURL
 
 	info( 'uploading photo', params.filePath )
-	info( 'password', params.ftppassword )
+	info( 'password', params.ftp_password_permissions )
 	info( 'autoDate', params.autodate )
 	info( 'postKey', postKey )
 	info( 'uploadURL', uploadURL )

@@ -220,13 +220,13 @@ function PixelpostExportDialogSections.sectionsForBottomOfDialog( f, propertyTab
 			
 			f:row {
 				f:static_text {
-					title = LOC "$$$/Pixelpost/ExportDialog/ftpPassword=FTP password:",
+					title = LOC "$$$/Pixelpost/ExportDialog/ftp_password_permissions=FTP password:",
 					alignment = 'right',
 					width = share 'labelWidth',
 				},
 
 				f:password_field {
-					value = bind 'ftpPassword',
+					value = bind 'ftp_password_permissions',
 					fill_horizontal = 1,
 				},
 			},
