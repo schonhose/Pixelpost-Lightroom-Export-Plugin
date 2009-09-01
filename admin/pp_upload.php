@@ -28,7 +28,7 @@ define("CREATECAT", false);
  * If this is set to "true", Pixelpost will import the tags from Lightroom. 
  * If you don't want this, simply set it to "false".
  */
-define("ENABLE_TAGS", true);
+define("ENABLETAGS", true);
 
 /**
  * While Lightroom is perfectly happy containing tags with spaces, this is used as a
@@ -40,7 +40,7 @@ define("TAGSPACEREPLACEMENT", '_');
 
 /**
  * Pixelpost allows you to upload a post several days after the last post (posting in the future). With this
- * setting you can manipulate this behaviour. Default setting is one day after last post.
+ * setting you can manipulate this behavior. Default setting is one day after last post.
  */
 define("POSTINTERVAL", 1);
 
@@ -52,7 +52,7 @@ define("POSTINTERVAL", 1);
 define("BLANKTITLE", false);
 
 /**
- * If you use Lightroom to geocode your images (e.g. use the Jeffrey�s "GPS-Support" Geoencoding 
+ * If you use Lightroom to geocode your images (e.g. use the Jeffrey's "GPS-Support" Geoencoding 
  * Plugin for Lightroom, found at http://regex.info/blog/lightroom-goodies/gps) and if you use the
  * Googlemap addon, you can update the location at your photoblog while performing the export. 
  * To enable this feature, change the text from false to true.
@@ -103,23 +103,37 @@ else
 ob_start();
 
 /**
- * Translate the Lightroom $_POST variables to Pixelpost format
- **/
-if (!BLANKTITLE)
+ * Trim the file extension from the title, if the title is a filename.
+ * If the BLANKTITLE option is enabled, filenames will be removed entirely
+ */
+$title      = pathinfo($_POST['title']);
+$extensions = array('jpg','jpeg','png','gif');
+
+if(in_array(strtolower($title['extension']), $extensions))
 {
-	$_POST['headline'] = $_POST['title'];
-}
-else
-{
-	$_POST['headline'] = "";
+	$_POST['title'] = $title['filename'];
+	
+	if (BLANKTITLE)
+	{
+		$_POST['title'] = '';
+	}
 }
 
-$_POST['body'] = $_POST['description'];
+
+/**
+ * Translate the Lightroom $_POST variables to Pixelpost format
+ **/
+
+if(isset($_FILES['title']))
+	$_POST['headline'] = $_POST['title'];
+
+if(isset($_FILES['description']))	
+	$_POST['body']     = $_POST['description'];
 
 /**
  * If tags are disabled, we can remove them from the post.
  */
-if (!ENABLE_TAGS)
+if (!ENABLETAGS)
 {
 	$_POST['tags'] = '';
 }
@@ -134,7 +148,8 @@ $_POST['tags'] = trim($_POST['tags'], ', ');
  */
 $_POST['tags'] = str_replace(array(' ', TAGSPACEREPLACEMENT . ',', ',' . TAGSPACEREPLACEMENT), array(TAGSPACEREPLACEMENT, ',', ','), $_POST['tags']);
 
-$_FILES['userfile'] = $_FILES['photo'];
+if(isset($_FILES['photo']))
+	$_FILES['userfile'] = $_FILES['photo'];
 
 
 /**
@@ -325,42 +340,26 @@ if ($_GET['x'] == "save")
 					'$alt_body','$comments_settings','$exif_info_db')";
 		$result = mysql_query($query) || die("Error: " . mysql_error() . $admin_lang_ni_db_error);
 		$theid = mysql_insert_id(); //Gets the id of the last added image to use in the next "insert"
+		
 		/**
-		 * Support for the GooglemapAddon (really should incorperate different versions....)
+		 * Support for the GooglemapAddon
 		 * 
-		 * @todo Google Map Addon, should run via the included addon workspaces, and shouldn't require extensive hacking of pp_upload.php
+		 * since we all ready escaped everything for database commit we have
+		 * strip the slashes before we can use the exif again.
 		 **/
-		if (USEGOOGLEMAPADDON)
+		$exif_info = stripslashes($exif_info_db);
+		$exif_info = unserialize_exif($exif_info);
+		
+		// try to get the GPS exif data
+		if (array_key_exists('LatitudeGPS', $exif_info))
 		{
-			//----------------------------------------------------------------------------------------------------------------------------------------
-			// different versions googlemap
-			// since we all ready escaped everything for database commit we have
-			// strip the slashes before we can use the exif again.
-			$exif_info = stripslashes($exif_info_db);
-			$exif_info = unserialize_exif($exif_info);
-			// try to get the GPS exif data
-			if (array_key_exists('LatitudeGPS', $exif_info))
-			{
-				if ($exif_info['Latitude ReferenceGPS'] == "S")
-				{
-					$_POST['imagePointLat'] = '-' . $exif_info['LatitudeGPS'];
-				}
-				else
-				{
-					$_POST['imagePointLat'] = $exif_info['LatitudeGPS'];
-				}
-				if ($exif_info['Longitude ReferenceGPS'] == "W")
-				{
-					$_POST['imagePointLng'] = '-' . $exif_info['LongitudeGPS'];
-				}
-				else
-				{
-					$_POST['imagePointLng'] = $exif_info['LongitudeGPS'];
-				}
-				// add backwards compatibility with V2
-				$_POST['imagePoint'] = "(" . $_POST['imagePointLat'] . ", " . $_POST['imagePointLng'] . ")";
-			}
+			$_POST['imagePointLat'] = ($exif_info['Latitude ReferenceGPS'] == "S")? '-'. $exif_info['LatitudeGPS'] : $exif_info['LatitudeGPS'];
+			$_POST['imagePointLng'] = ($exif_info['Longitude ReferenceGPS'] == "W")? '-'. $exif_info['LongitudeGPS'] : $exif_info['LongitudeGPS'];
+			
+			// add backwards compatibility with GooglemapAddon v2
+			$_POST['imagePoint'] = "({$_POST['imagePointLat']},{$_POST['imagePointLng']})";
 		}
+			
 		/**
 		 * Support for categories
 		 **/
@@ -375,6 +374,7 @@ if ($_GET['x'] == "save")
 			$query_st = "INSERT INTO " . $pixelpost_db_prefix . "catassoc (id,cat_id,image_id) VALUES " . implode(",", $query_val) . ";";
 			$result = mysql_query($query_st) || die("Error: " . mysql_error());
 		}
+		
 		eval_addon_admin_workspace_menu('image_uploaded');
 		save_tags_new(clean($_POST['tags']), $theid);
 
@@ -404,7 +404,7 @@ if ($_GET['x'] == "save")
 		 * Our job is done...
 		 * Let the program know
 		 **/
-	    ob_end_clean();
+		ob_end_clean();
 		echo "OK";
 	} // end status ok
 	else
