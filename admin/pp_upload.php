@@ -45,6 +45,13 @@ define("TAGSPACEREPLACEMENT", '_');
 define("POSTINTERVAL", 1);
 
 /**
+ * The title for an image is captured from the caption setting in Lightroom. When that is not available
+ * it will default to the image name (e.g. IMG_xxxx.jpg). If you just want to use blank titles set this
+ * variable to true.
+ */
+define("BLANKTITLE", false);
+
+/**
  * If you use Lightroom to geocode your images (e.g. use the Jeffrey’s "GPS-Support" Geoencoding 
  * Plugin for Lightroom, found at http://regex.info/blog/lightroom-goodies/gps) and if you use the
  * Googlemap addon, you can update the location at your photoblog while performing the export. 
@@ -98,8 +105,15 @@ ob_start();
 /**
  * Translate the Lightroom $_POST variables to Pixelpost format
  **/
+if (!ENABLE_TAGS)
+{
+	$_POST['headline'] = $_POST['title'];
+}
+else
+{
+	$_POST['headline'] = "";
+}
 
-$_POST['headline'] = $_POST['title'];
 $_POST['body'] = $_POST['description'];
 
 /**
