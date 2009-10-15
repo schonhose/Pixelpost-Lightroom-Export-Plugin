@@ -40,7 +40,9 @@ define("TAGSPACEREPLACEMENT", '_');
 
 /**
  * Pixelpost allows you to upload a post several days after the last post (posting in the future). With this
- * setting you can manipulate this behavior. Default setting is one day after last post.
+ * setting you can manipulate this behavior. Default setting is one day after last post, but this can be 
+ * manipulated during upload by entering a different value. In case that value doesn't exists the value
+ * presented here will be used.
  */
 define("POSTINTERVAL", 1);
 
@@ -247,7 +249,16 @@ if ($_GET['x'] == "save")
 	switch ($_POST['autodate'])
 	{
 		case 1:
-			$query = mysql_query("select datetime + INTERVAL " . POSTINTERVAL . " DAY from " . $pixelpost_db_prefix . "pixelpost order by datetime desc limit 1");
+			if ($_POST['postinterval']=='')
+			{
+				// if the variable is empty then use the constant defined
+				$postinterval = POSTINTERVAL;
+			}
+			else
+			{
+				$postinterval = (int) $_POST['postinterval'];
+			}
+			$query = mysql_query("select datetime + INTERVAL " . $postinterval . " DAY from " . $pixelpost_db_prefix . "pixelpost order by datetime desc limit 1");
 			$row = mysql_fetch_row($query);
 			if ($row) $datetime = $row[0]; // If there is none, will default to the other value
 			break;
