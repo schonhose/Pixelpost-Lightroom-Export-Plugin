@@ -37,12 +37,11 @@ define("ENABLETAGS", true);
  * (e.g. "My_family") If you would like to disable this feature, simply enter a space " " as the value.
  * Other values, such as Using a hyphen "-" or setting it to a blank value "" are possible as well.
  * (e.g. My-family or Myfamily)
-*/
+ */
 define("TAGSPACEREPLACEMENT", "_");
 
 /**
  * Pixelpost allows you to upload a post several days after the last post (posting in the future). With this
- * setting you can manipulate this behavior. Default setting is one day after last post.
  * setting you can manipulate this behavior. Default setting is one day after last post, but this can be 
  * manipulated during upload by entering a different value. In case that value doesn't exists the value
  * presented here will be used.
@@ -89,9 +88,9 @@ if (!isset($_GET['post_key_hash']) || $_GET['post_key_hash'] != md5(POSTKEY))
 if (isset($_GET['mode']) and $_GET['mode'] == 'validate')
 {
 	die('OK');
-} elseif (isset($_GET['mode']) and $_GET['mode'] == 'upload')
+} elseif ((isset($_GET['mode']) and $_GET['mode'] == 'upload') or (isset($_GET['mode']) and $_GET['mode'] == 'update'))
 {
-	// Continue on our way...
+	// If we want to upload or update continue on our way...
 }
 else
 {
@@ -105,13 +104,13 @@ ob_start();
  * Trim the file extension from the title, if the title is a filename.
  * If the BLANKTITLE option is enabled, filenames will be removed entirely
  */
-$title      = pathinfo($_POST['title']);
-$extensions = array('jpg','jpeg','png','gif');
+$title = pathinfo($_POST['title']);
+$extensions = array('jpg', 'jpeg', 'png', 'gif');
 
-if(in_array(@strtolower($title['extension']), $extensions))
+if (in_array(@strtolower($title['extension']), $extensions))
 {
 	$_POST['title'] = $title['filename'];
-	
+
 	if (BLANKTITLE)
 	{
 		$_POST['title'] = '';
@@ -123,11 +122,9 @@ if(in_array(@strtolower($title['extension']), $extensions))
  * Translate the Lightroom $_POST variables to Pixelpost format
  **/
 
-if(isset($_FILES['title']))
-	$_POST['headline'] = $_POST['title'];
+if (isset($_FILES['title'])) $_POST['headline'] = $_POST['title'];
 
-if(isset($_FILES['description']))	
-	$_POST['body']     = $_POST['description'];
+if (isset($_FILES['description'])) $_POST['body'] = $_POST['description'];
 
 /**
  * If tags are disabled, we can remove them from the post.
@@ -142,14 +139,21 @@ if (!ENABLETAGS)
  */
 $_POST['tags'] = str_replace(array(' ', TAGSPACEREPLACEMENT . ',', ',' . TAGSPACEREPLACEMENT), array(TAGSPACEREPLACEMENT, ',', ','), trim($_POST['tags'], ', '));
 
-if(isset($_FILES['photo']))
-	$_FILES['userfile'] = $_FILES['photo'];
+if (isset($_FILES['photo'])) $_FILES['userfile'] = $_FILES['photo'];
 
 
 /**
- * Provide addon support
+ * Provide addon support and support either upload (save) or update (update)
  */
-$_GET['x'] = 'save';
+switch ($_GET['mode'])
+{
+	case 'upload':
+		$_GET['x'] = 'save';
+		break;
+	case 'update':
+		$_GET['x'] = 'update';
+		break;
+}
 
 // Hack to get post slug to auto-generate titles
 $_POST['postslug'] = "";
@@ -173,7 +177,7 @@ function die_logout($message = '')
 
 	// Finally, destroy the session.
 	session_destroy();
-	
+
 	die($message);
 }
 
@@ -209,11 +213,11 @@ else
 /**
  * Make the script believe we are actually logged in into the adminpanel
  */
-$_POST['user']                        = $cfgrow['admin'];
-$_SESSION["pixelpost_admin"]          = $cfgrow['password'];
-$_GET["_SESSION"]["pixelpost_admin"]  = '';
+$_POST['user'] = $cfgrow['admin'];
+$_SESSION["pixelpost_admin"] = $cfgrow['password'];
+$_GET["_SESSION"]["pixelpost_admin"] = '';
 $_POST["_SESSION"]["pixelpost_admin"] = '';
-$login                                = "true";
+$login = "true";
 
 
 /**
@@ -232,7 +236,7 @@ if (!isset($_SESSION["pixelpost_admin"]) || $cfgrow['password'] != $_SESSION["pi
  * Start saving a new post
  */
 $headline = clean($_POST['headline']);
-$body     = clean($_POST['body']);
+$body = clean($_POST['body']);
 
 //----------------------------------------------------------------------------------------------------------------------------------------
 // Lightroom only supports one headline in one language... what to do with the ALT_language? Perhaps an option to fill it with the same data
@@ -253,33 +257,33 @@ else
 
 $comments_settings = clean($_POST['allow_comments']);
 
-	/**
-	 * Default datetime is current date time
-	 **/
-	$datetime = gmdate("Y-m-d H:i:s", time() + (3600 * $cfgrow['timezone']));
-	switch ($_POST['autodate'])
-	{
-		case 1:
-			if ($_POST['postinterval']=='')
-			{
-				// if the variable is empty then use the constant defined
-				$postinterval = POSTINTERVAL;
-			}
-			else
-			{
-				$postinterval = (int) $_POST['postinterval'];
-			}
-			$query = mysql_query("select datetime + INTERVAL " . $postinterval . " DAY from " . $pixelpost_db_prefix . "pixelpost order by datetime desc limit 1");
-			$row = mysql_fetch_row($query);
-			if ($row) $datetime = $row[0]; // If there is none, will default to the other value
-			break;
-		case 2:
-			// use the default date time provided
-			break;
-		case 3:
-			$postdatefromexif = true;
-			break;
-	}
+/**
+ * Default datetime is current date time
+ **/
+$datetime = gmdate("Y-m-d H:i:s", time() + (3600 * $cfgrow['timezone']));
+switch ($_POST['autodate'])
+{
+	case 1:
+		if ($_POST['postinterval'] == '')
+		{
+			// if the variable is empty then use the constant defined
+			$postinterval = POSTINTERVAL;
+		}
+		else
+		{
+			$postinterval = (int)$_POST['postinterval'];
+		}
+		$query = mysql_query("select datetime + INTERVAL " . $postinterval . " DAY from " . $pixelpost_db_prefix . "pixelpost order by datetime desc limit 1");
+		$row = mysql_fetch_row($query);
+		if ($row) $datetime = $row[0]; // If there is none, will default to the other value
+		break;
+	case 2:
+		// use the default date time provided
+		break;
+	case 3:
+		$postdatefromexif = true;
+		break;
+}
 
 $status = "no"; //assume the upload has failed by default
 
@@ -289,28 +293,43 @@ $status = "no"; //assume the upload has failed by default
 $userfile = strtolower($_FILES['userfile']['name']);
 $tz = $cfgrow['timezone'];
 
-if ($cfgrow['timestamp'] == 'yes')
+/**
+ * In case we want to save the new image we need to generate
+ * a filename
+ **/
+if ($_GET['x'] == 'save')
 {
-	$time_stamp_r = gmdate("YmdHis", time() + (3600 * $tz)) . '_';
-}
-else
+	if ($cfgrow['timestamp'] == 'yes')
+	{
+		$time_stamp_r = gmdate("YmdHis", time() + (3600 * $tz)) . '_';
+	}
+	else
+	{
+		$time_stamp_r = '';
+	}
+	$uploadfile = $upload_dir . $time_stamp_r . $userfile;
+	eval_addon_admin_workspace_menu('image_upload_start');
+} elseif ($_GET['x'] == 'update')
 {
-	$time_stamp_r = '';
+	eval_addon_admin_workspace_menu('image_update');
+	// we need to get the update id (assume it is passed by url)
+	$update_id = intval($_GET['update_id']);
+
+	//TO DO: get the filename from the database using the image ID that
+	//needs to be updated and store it into $uploadfile
+
+	eval_addon_admin_workspace_menu('image_reupload_start');
 }
-
-$uploadfile = $upload_dir . $time_stamp_r . $userfile;
-
-eval_addon_admin_workspace_menu('image_upload_start');
 
 if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
 {
 	chmod($uploadfile, 0644);
-	$result     = check_upload($_FILES['userfile']['error']);
-	$filnamn    = strtolower($_FILES['userfile']['name']);
-	$filnamn    = $time_stamp_r . $filnamn;
-	$filtyp     = $_FILES['userfile']['type'];
+	$result = check_upload($_FILES['userfile']['error']);
+	$filnamn = strtolower($_FILES['userfile']['name']);
+	$filnamn = $time_stamp_r . $filnamn;
+	$filtyp = $_FILES['userfile']['type'];
 	$filstorlek = $_FILES['userfile']['size'];
-	$status     = "ok";
+	$status = "ok";
 
 	//Get the exif data so we can store it.
 	// what about files that don't have exif data??
@@ -322,8 +341,8 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
 	{
 		// since we all ready escaped everything for database commit we have
 		// strip the slashes before we can use the exif again.
-		$exif_info        = stripslashes($exif_info_db);
-		$exif_result      = unserialize_exif($exif_info);
+		$exif_info = stripslashes($exif_info_db);
+		$exif_result = unserialize_exif($exif_info);
 		$exposuredatetime = $exif_result['DateTimeOriginalSubIFD'];
 
 		if ($exposuredatetime != '')
@@ -333,8 +352,14 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile))
 		}
 		else  $datetime = gmdate("Y-m-d H:i:s", time() + (3600 * $tz));
 	}
-	
-	eval_addon_admin_workspace_menu('image_upload_succesful');
+
+	if ($_GET['x'] == 'save')
+	{
+		eval_addon_admin_workspace_menu('image_upload_succesful');
+	} elseif ($_GET['x'] == 'update')
+	{
+		eval_addon_admin_workspace_menu('image_reupload_succesful');
+	}
 }
 else
 {
@@ -344,7 +369,14 @@ else
 	if ($_FILES['userfile']['error'] != '0') $result = check_upload($_FILES['userfile']['error']);
 	else  die_logout("ERROR: Image uploading has failed");
 	if (!is__writable($upload_dir)) die_logout("ERROR: The folders are not open for writing");
-	eval_addon_admin_workspace_menu('image_upload_failed');
+
+	if ($_GET['x'] == 'save')
+	{
+		eval_addon_admin_workspace_menu('image_upload_failed');
+	} elseif ($_GET['x'] == 'update')
+	{
+		eval_addon_admin_workspace_menu('image_reupload_failed');
+	}
 } // end move
 
 
@@ -365,19 +397,37 @@ if ($status != "ok")
 	die_logout($output);
 }
 
+/**
+ * Code for saving or updating in the database:
+ */
 
-$query = "INSERT INTO " . $pixelpost_db_prefix . "pixelpost 
+if ($_GET['x'] == 'save')
+{
+	$query = "INSERT INTO " . $pixelpost_db_prefix . "pixelpost 
 		(datetime,headline,body,image,alt_headline,alt_body,comments,exif_info)
 		VALUES('$datetime','$headline','$body','$image','$alt_headline',
 		'$alt_body','$comments_settings','$exif_info_db')";
-$result = mysql_query($query) || die_logout("Error: " . mysql_error() . $admin_lang_ni_db_error);
-$theid  = mysql_insert_id(); //Gets the id of the last added image to use in the next "insert"
+	$result = mysql_query($query) || die_logout("Error: " . mysql_error() . $admin_lang_ni_db_error);
+	$theid = mysql_insert_id(); //Gets the id of the last added image to use in the next "insert"
+} elseif ($_GET['x'] == 'update')
+{
+	$query = "UPDATE " . $pixelpost_db_prefix . "pixelpost set 
+		datetime='$newdatetime', headline='$headline', body='$body', 
+		category='$category', alt_headline='$alt_headline', 
+		alt_body='$alt_body', comments='$comments_settings', 
+		exif_info='$exif_info_db' 
+		WHERE id='$update_id'";
+	$result = mysql_query($query) || die_logout("Error: " . mysql_error() . $admin_lang_ni_db_error);
+}
 
 /**
  * Support for the GooglemapAddon
  * 
  * since we all ready escaped everything for database commit we have
  * strip the slashes before we can use the exif again.
+ * 
+ * Not sure how the update is handled in this routine!!
+ * TODO: check update routine.
  **/
 $exif_info = stripslashes($exif_info_db);
 $exif_info = unserialize_exif($exif_info);
@@ -385,18 +435,25 @@ $exif_info = unserialize_exif($exif_info);
 // try to get the GPS exif data
 if (array_key_exists('LatitudeGPS', $exif_info))
 {
-	$_POST['imagePointLat'] = ($exif_info['Latitude ReferenceGPS'] == "S")? '-'. $exif_info['LatitudeGPS'] : $exif_info['LatitudeGPS'];
-	$_POST['imagePointLng'] = ($exif_info['Longitude ReferenceGPS'] == "W")? '-'. $exif_info['LongitudeGPS'] : $exif_info['LongitudeGPS'];
-	
+	$_POST['imagePointLat'] = ($exif_info['Latitude ReferenceGPS'] == "S") ? '-' . $exif_info['LatitudeGPS'] : $exif_info['LatitudeGPS'];
+	$_POST['imagePointLng'] = ($exif_info['Longitude ReferenceGPS'] == "W") ? '-' . $exif_info['LongitudeGPS'] : $exif_info['LongitudeGPS'];
+
 	// add backwards compatibility with GooglemapAddon v2
 	$_POST['imagePoint'] = "({$_POST['imagePointLat']},{$_POST['imagePointLng']})";
 }
-	
+
 /**
  * Support for categories
  **/
 if (isset($_POST['category']))
 {
+	if ($_GET['x'] == 'update')
+	{
+		// remove the categories from the table so we can insert them again
+		$query = "delete from " . $pixelpost_db_prefix . "catassoc where image_id='$getid'";
+		$result = mysql_query($query) || ("Error: " . mysql_error());
+	}
+
 	$query_val = array();
 	foreach ($_POST['category'] as $val)
 	{
@@ -407,11 +464,18 @@ if (isset($_POST['category']))
 	$result = mysql_query($query_st) || die_logout("Error: " . mysql_error());
 }
 
-eval_addon_admin_workspace_menu('image_uploaded');
-save_tags_new(clean($_POST['tags']), $theid);
+if ($_GET['x'] == 'save')
+{
+	eval_addon_admin_workspace_menu('image_uploaded');
+	save_tags_new(clean($_POST['tags']), $theid);
+	if ($cfgrow['altlangfile'] != 'Off') save_tags_new(clean($_POST['alt_tags']), $theid, "alt_");
+} elseif ($_GET['x'] == 'update')
+{
+	save_tags_edit(clean($_POST['tags']), $update_id);
+	if ($cfgrow['altlangfile'] != 'Off') save_tags_edit(clean($_POST['alt_tags']), $update_id, "alt_");
+}
 
 //----------------------------------------------------------------------------------------------------------------------------------------
-if ($cfgrow['altlangfile'] != 'Off') save_tags_new(clean($_POST['alt_tags']), $theid, "alt_");
 
 /**
  * Create a thumbnail
@@ -428,11 +492,13 @@ if (function_exists('gd_info'))
 	} // end if
 } // function_exists
 
-
-eval_addon_admin_workspace_menu('upload_finished');
+if ($_GET['x'] == 'save')
+{
+	eval_addon_admin_workspace_menu('upload_finished');
+}
 
 /**
- * Image has been uploaded with success
+ * Image has been uploaded or updated with success
  * Our job is done...
  * Let the program know
  **/
