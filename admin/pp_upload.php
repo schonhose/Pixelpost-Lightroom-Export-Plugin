@@ -314,10 +314,8 @@ if ($_GET['x'] == 'save')
 	eval_addon_admin_workspace_menu('image_update');
 	// we need to get the update id (assume it is passed by url)
 	$update_id = intval($_GET['update_id']);
-
-	//TO DO: get the filename from the database using the image ID that
-	//needs to be updated and store it into $uploadfile
-
+	$query = mysql_query("SELECT image FROM `" . $pixelpost_db_prefix . "pixelpost` WHERE id = " . $update_id);
+	$uploadfile = mysql_fetch_row($query);
 	eval_addon_admin_workspace_menu('image_reupload_start');
 }
 
