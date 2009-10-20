@@ -70,18 +70,32 @@ local function checkForPreviousUploads( exportSession )
 	exportSession.catalog:withCatalogDo( function()
 
 		for photo in exportSession:photosToExport() do
+			-- the function below is deprecated as of LR2 and will not be available in LR3. Replacement code should be written
+			local pixelpostPhotoId = photo:getPropertyForPlugin(_G.pluginID, 'photo_id' )
+			
+			if pixelpostPhotoId then
+				numExisting = numExisting + 1
+				existingPixelpostIds[ photo ] = pixelpostPhotoId
+			end
+			
+			--local pixelpostPhotoId = photo:getPropertyForPlugin(_G.pluginID, 'photo_id' )
+			--if pixelpostPhotoId then
+			--	numExisting = numExisting + 1
+			--	existingPixelpostIds[ photo ] = pixelpostPhotoId
+			--end
+			
+			-- old legacy code below, should be replaced with the block above.
+			--photo:withSettingsForPluginDo( 'org.pixelpost.lightroom.export.pixelpost', function( settings )
 	
-			photo:withSettingsForPluginDo( 'org.pixelpost.lightroom.export.pixelpost', function( settings )
+			--	local pixelpostPhotoId = settings.photo_id
+			--	if pixelpostPhotoId then
+			--		numExisting = numExisting + 1
+			--		existingPixelpostIds[ photo ] = pixelpostPhotoId
+			--	end
 	
-				local pixelpostPhotoId = settings.photo_id
-				if pixelpostPhotoId then
-					numExisting = numExisting + 1
-					existingPixelpostIds[ photo ] = pixelpostPhotoId
-				end
-	
-				return false -- hint that nothing was changed
+			--	return false -- hint that nothing was changed
 		
-			end )
+			--end )
 	
 		end
 	
@@ -254,9 +268,10 @@ function PixelpostUploadTask.processRenderedPhotos( functionContext, exportConte
 				
 				photo.catalog:withCatalogDo( function()
 
-					photo:withSettingsForPluginDo( 'org.pixelpost.lightroom.export.pixelpost', function( settings )
+					photo:setPropertyForPlugin( _PLUGIN, 'photo_id', pixelpostPhotoId )
+					--photo:withSettingsForPluginDo( 'org.pixelpost.lightroom.export.pixelpost', function( settings )
 				
-						settings.photo_id = pixelpostPhotoId
+					--settings.photo_id = pixelpostPhotoId
 
 					end )
 				

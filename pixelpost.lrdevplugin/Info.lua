@@ -25,6 +25,9 @@ return {
 	LrToolkitIdentifier = 'org.pixelpost.lightroom.export.pixelpost',
 	LrPluginName = LOC "$$$/Pixelpost/Pixelpost=Pixelpost",
 	
+	-- Add the Metadata Definition File
+	LrMetadataProvider = 'PixelpostMetadataDefinition.lua',
+	
 	-- LrLibraryMenuItems = {
 	-- 	title = LOC "$$$/Pixelpost/ExportUsingDefaults=Export to Pixelpost Using Defaults",
 	-- 	file = 'ExportToPixelpost.lua',
