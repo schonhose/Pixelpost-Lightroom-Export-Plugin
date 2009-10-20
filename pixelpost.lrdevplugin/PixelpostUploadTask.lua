@@ -273,7 +273,7 @@ function PixelpostUploadTask.processRenderedPhotos( functionContext, exportConte
 				
 					--settings.photo_id = pixelpostPhotoId
 
-					end )
+					--end )
 				
 				end )
 			
