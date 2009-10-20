@@ -226,9 +226,18 @@ function PixelpostUploadTask.processRenderedPhotos( functionContext, exportConte
 			
 			-- See if we previously uploaded this photo.
 			
-			local pixelpostPhotoId
+			local pixelpostPhotoId -- this can be removed when the code below works
 
+			--local pixelpostPhotoId = photo:getPropertyForPlugin(_G.pluginID, 'photo_id' )
+			--if pixelpostPhotoId then
+			--	numExisting = numExisting + 1
+			--	existingPixelpostIds[ photo ] = pixelpostPhotoId
+			--end
+			
+			-- old legacy code below.
 --[[		TO DO: Hold off on this until we can replace photos...
+
+
 			photo:withSettingsForPluginDo( 'org.pixelpost.lightroom.export.pixelpost', function( settings )
 
 				pixelpostPhotoId = settings.photo_id
