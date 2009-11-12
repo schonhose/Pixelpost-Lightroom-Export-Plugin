@@ -37,7 +37,7 @@ local share = LrView.share
 local logger = import 'LrLogger'( 'PixelpostAPI' )
 
 -- Commment this out if you want log files disabled:
---logger:enable('logfile')
+logger:enable('logfile')
 
 local debug, info, warn, err = logger:quick( 'debug', 'info', 'warn', 'err' )
 

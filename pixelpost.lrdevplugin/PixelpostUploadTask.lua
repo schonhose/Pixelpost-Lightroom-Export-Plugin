@@ -275,8 +275,7 @@ function PixelpostUploadTask.processRenderedPhotos( functionContext, exportConte
 				-- Record this Pixelpost ID with the photo so we know to replace
 				-- instead of upload.
 				
-				photo.catalog:withCatalogDo( function()
-
+				photo.catalog:withPrivateWriteAccessDo( function()
 					photo:setPropertyForPlugin( _PLUGIN, 'photo_id', pixelpostPhotoId )
 					--photo:withSettingsForPluginDo( 'org.pixelpost.lightroom.export.pixelpost', function( settings )
 				

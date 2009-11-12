@@ -43,7 +43,9 @@ return {
 				for i, photo in ipairs( photosToMigrate ) do
 					local oldSiteId = photo:getPropertyForPlugin(_G.pluginID, 'photo_id' ) -- add property version here if used above
                 	local newSiteId = "new:" .. oldSiteId -- replace this with whatever data transformation you need to do
-                	photo:setPropertyForPlugin( _PLUGIN, 'photo_id', newSiteId )
+					photo.catalog:withPrivateWriteAccessDo( function()
+						photo:setPropertyForPlugin( _PLUGIN, 'photo_id', newSiteId )
+					end )
 				end
 		elseif previousSchemaVersion == 2 then
 			-- optional area to do further processing
